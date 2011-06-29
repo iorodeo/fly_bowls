@@ -3,16 +3,21 @@ import roslib
 roslib.load_manifest('fly_bowls')
 import rospy
 import copy
+import numpy
 
 import cad.finite_solid_objects as fso
 import cad.csg_objects as csg
-import cad.cad_export.bom as bom
+# import cad.finite_patch_objects as fpo
+# import cad.cad_export.bom as bom
 
 
 PARAMETERS = {
     'x' : 12.0,
     'y' : 12.0,
     'z' : 0.5,
+    'depth' : 0.138,
+    'diameter' : 5,
+    'slope' : 11,
     'color' : [0.8,0.8,0.8,0.8],
     'name' : 'FLYBOWL',
     'description' : '',
@@ -62,7 +67,41 @@ class FlyBowl(csg.Difference):
         # slide.set_color(self.slide_color,recursive=True)
 
     def __make_bowl(self):
-        bowl = fso.Cylinder(l=2,r=1)
+        depth = self.parameters['depth']
+        diameter = self.parameters['diameter']
+        slope = self.parameters['slope']
+
+        theta = slope*numpy.pi/180
+        L = (depth*numpy.pi)/(2*numpy.tan(theta))
+        if diameter/2 < L/2:
+            raise ValueError("The depth is too large for this diameter.")
+
+        X = numpy.linspace(0,L/2)
+        Y = (depth/2)*(1+numpy.sin(X*numpy.pi/L - numpy.pi/2))
+
+        x0 = 0
+        y0 = 0
+        x1 = L/2 + depth/numpy.tan(theta)
+        y1 = 3/2*depth
+        X = numpy.append(X,x1)
+        Y = numpy.append(Y,y1)
+
+        # Offset for diameter, x0 and y0
+        offset = x0 + diameter/2 - L/2 - depth/(2*numpy.tan(theta))
+        x1 = x1 + offset
+        X = X + offset
+        y1 = y0 + y1
+        Y = Y + y0
+
+        # Add points to close profile
+        X = numpy.append(X,[x0,x0,offset])
+        Y = numpy.append(Y,[y1,y0,y0])
+
+        bowl = fso.Rotation(x_list=X,y_list=Y)
+        # profile = bowl.get_profile()
+        # profile.plot()
+        z_offset = self.parameters['z']/2 - self.parameters['depth']
+        bowl.translate([0,0,z_offset])
         self.add_obj(bowl)
 
 # ---------------------------------------------------------------------

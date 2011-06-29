@@ -8,18 +8,22 @@ import numpy
 import pylab
 
 
-diameter = 5
-depth = 0.138
+diameter = 20
+# diameter = 5
+# depth = 0.138
+depth = 1
 slope = 11                              # in degrees
 theta = slope*numpy.pi/180
 
-# Curves on top and bottom edges
-# L = ((2*depth)*numpy.pi)/(2*numpy.tan(theta))
-# if diameter/2 < L/2:
-#     raise ValueError("The depth is too large for this diameter.")
+# Curves on top and bottom
+L = ((depth)*numpy.pi)/(2*numpy.tan(theta))
+if diameter/2 < L/2:
+    raise ValueError("The depth is too large for this diameter.")
 
-# X = numpy.linspace(0,L)
-# Y = ((2*depth)/2)*(1+numpy.cos(X*numpy.pi/L))
+X = numpy.linspace(0,L)
+# Y = ((depth)/2)*(1+numpy.cos(X*numpy.pi/L))
+Y = ((depth)/2)*(1+numpy.sin(X*numpy.pi/L - numpy.pi/2))
+# pylab.plot(X,Y)
 
 # Add points to close profile
 # CenterX = L/2 + diameter/2
@@ -29,24 +33,32 @@ theta = slope*numpy.pi/180
 # Offset X
 # X = X - L/2 - diameter/2
 
-# Curve on bottom edge only
+# Curve on bottom only
 L = (depth*numpy.pi)/(2*numpy.tan(theta))
 if diameter/2 < L/2:
     raise ValueError("The depth is too large for this diameter.")
 
-X = numpy.linspace(L/2,L)
-Y = (depth/2)*(1+numpy.cos(X*numpy.pi/L))
+X = numpy.linspace(0,L/2)
+# Y = (depth/2)*(1+numpy.cos(X*numpy.pi/L))
+Y = (depth/2)*(1+numpy.sin(X*numpy.pi/L - numpy.pi/2))
 
-y2 = numpy.tan(theta)*(L/2) + depth/2
-X = numpy.insert(X,0,0)
-Y = numpy.insert(Y,0,y2)
-x1 = L/2 - depth/(2*numpy.tan(theta))
+x0 = 0
+y0 = 0
+x1 = L/2 + depth/numpy.tan(theta)
+y1 = 3/2*depth
+X = numpy.append(X,x1)
+Y = numpy.append(Y,y1)
 
-# Testing...
-# H = 10
-# X = numpy.linspace(0,100)
-# Y = numpy.cos(X*numpy.pi/100)
+# Offset for diameter, x0 and y0
+offset = x0 + diameter/2 - L/2 - depth/(2*numpy.tan(theta))
+x1 = x1 + offset
+X = X + offset
+y1 = y0 + y1
+Y = Y + y0
 
+# Add points to close profile
+X = numpy.append(X,[x0,x0,offset])
+Y = numpy.append(Y,[y1,y0,y0])
 
 pylab.plot(X, Y)
 pylab.axis('equal')
