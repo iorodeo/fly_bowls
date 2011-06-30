@@ -7,6 +7,7 @@ import numpy
 
 import cad.finite_solid_objects as fso
 import cad.csg_objects as csg
+import cad_library.screw_holes as screw_holes
 # import cad.finite_patch_objects as fpo
 # import cad.cad_export.bom as bom
 
@@ -18,6 +19,8 @@ PARAMETERS = {
     'depth' : 0.138,
     'diameter' : 5,
     'slope' : 11,
+    'counterbore_size' : '10',
+    'mounting_hole_size' : '1/2',
     'color' : [0.8,0.8,0.8,0.8],
     'name' : 'FLYBOWL',
     'description' : '',
@@ -32,6 +35,8 @@ class FlyBowl(csg.Difference):
         self.parameters = PARAMETERS
         self.__make_plate()
         self.__make_bowl()
+        self.__make_counterbores()
+        self.__make_mounting_holes()
         # self.__set_bom()
         self.set_color(self.parameters['color'],recursive=True)
 
@@ -51,20 +56,6 @@ class FlyBowl(csg.Difference):
     def __make_plate(self):
         plate = fso.Box(x=self.parameters['x'],y=self.parameters['y'],z=self.parameters['z'])
         self.add_obj(plate)
-        # Create the mounting holes
-        # radius = 0.5*self.parameters['slide_screw_size']
-        # base_hole = fso.Cylinder(r=radius, l=2*height)
-        # hole_list = []
-        # for i in (-1,1):
-        #     for j in (-1,1):
-        #         xpos = i*(0.5*length - self.parameters['slide_screw_inset'])
-        #         ypos = j*(0.5*self.parameters['slide_screw_dW'])
-        #         hole = base_hole.copy()
-        #         hole.translate([xpos,ypos,0])
-        #         hole_list.append(hole)
-        # # Remove hole material
-        # slide -= hole_list
-        # slide.set_color(self.slide_color,recursive=True)
 
     def __make_bowl(self):
         depth = self.parameters['depth']
@@ -103,6 +94,54 @@ class FlyBowl(csg.Difference):
         z_offset = self.parameters['z']/2 - self.parameters['depth']
         bowl.translate([0,0,z_offset])
         self.add_obj(bowl)
+
+    def __make_counterbores(self):
+        counterbore_size = self.parameters['counterbore_size']
+        screw_hole_depth = self.parameters['z']*2
+        counterbore = screw_holes.Counterbore(size=counterbore_size,depth=screw_hole_depth,fit='free')
+        z_offset = self.parameters['z']/2
+        counterbore.translate([0,0,z_offset])
+
+        counterbore_set = []
+        # Make counterbore set 1
+        for x in [-2.75,2.75]:
+            for y in [-4.5,4.5]:
+                counterbore_copy = counterbore.copy()
+                counterbore_copy.translate([x,y,0])
+                counterbore_set.append(counterbore_copy)
+
+        # Make counterbore set 2
+        for x in [-5.5,5.5]:
+            for y in [-4.5,4.5]:
+                counterbore_copy = counterbore.copy()
+                counterbore_copy.translate([x,y,0])
+                counterbore_set.append(counterbore_copy)
+
+        # Make counterbore set 3
+        for x in [-5.5,5.5]:
+            for y in [-2.25,2.25]:
+                counterbore_copy = counterbore.copy()
+                counterbore_copy.translate([x,y,0])
+                counterbore_set.append(counterbore_copy)
+
+        self.add_obj(counterbore_set)
+
+    def __make_mounting_holes(self):
+        mounting_hole_size = self.parameters['mounting_hole_size']
+        hole_depth = self.parameters['z']*2
+        mounting_hole = screw_holes.ClearanceHole(size=mounting_hole_size,depth=hole_depth,fit='free')
+        z_offset = self.parameters['z']/2
+        mounting_hole.translate([0,0,z_offset])
+
+        mounting_hole_set = []
+        for x in [-5.5,5.5]:
+            for y in [-5.5,5.5]:
+                mounting_hole_copy = mounting_hole.copy()
+                mounting_hole_copy.translate([x,y,0])
+                mounting_hole_set.append(mounting_hole_copy)
+
+        self.add_obj(mounting_hole_set)
+
 
 # ---------------------------------------------------------------------
 if __name__ == '__main__':
