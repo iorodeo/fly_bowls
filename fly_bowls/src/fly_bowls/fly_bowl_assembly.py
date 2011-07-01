@@ -28,15 +28,15 @@ class FlyBowlAssembly(csg.Union):
 
     def __make_fly_bowl(self):
         fly_bowl_ = fly_bowl.FlyBowl()
-        fly_bowl_parameters = fly_bowl_.get_parameters()
-        z_offset = fly_bowl_parameters['z']
+        self.fly_bowl_parameters = fly_bowl_.get_parameters()
+        z_offset = self.fly_bowl_parameters['z'] * self.fly_bowl_parameters['scale'][2]
         fly_bowl_.translate([0,0,z_offset])
         self.add_obj(fly_bowl_)
 
     def __make_fly_bowl_support_plate(self):
         fly_bowl_support_plate_ = fly_bowl_support_plate.FlyBowlSupportPlate()
-        fly_bowl_support_plate_parameters = fly_bowl_support_plate_.get_parameters()
-        z_offset = -fly_bowl_support_plate_parameters['z']
+        self.fly_bowl_support_plate_parameters = fly_bowl_support_plate_.get_parameters()
+        z_offset = -self.fly_bowl_support_plate_parameters['z'] * self.fly_bowl_parameters['scale'][2]
         fly_bowl_support_plate_.translate([0,0,z_offset])
         self.add_obj(fly_bowl_support_plate_)
 

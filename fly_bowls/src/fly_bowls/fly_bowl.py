@@ -13,6 +13,7 @@ import cad_library.screw_holes as screw_holes
 # import cad.cad_export.bom as bom
 
 
+# Units of inches, scale later to be in mm
 PARAMETERS = {
     'x' : 12.0,
     'y' : 12.0,
@@ -21,8 +22,8 @@ PARAMETERS = {
     'bowl_diameter' : 5,
     'bowl_slope' : 11,
     'counterbore_size' : '10',
-    'counterbore_x' : [[-2.75,2.75],[-5.5,5.5],[-5.5,5.5]],
-    'counterbore_y' : [[-4.5,4.5],[-4.5,4.5],[-2.25,2.25]],
+    'counterbore_x_distances' : [2.75,5.5],
+    'counterbore_y_distances' : [2.25,4.5],
     'mounting_hole_size' : '1/2',
     'mounting_hole_x' : [-5.5,5.5],
     'mounting_hole_y' : [-5.5,5.5],
@@ -30,6 +31,7 @@ PARAMETERS = {
     'food_dish_depth' : 0.244,
     'extraction_hole_diameter' : 0.3,
     'color' : [0.8,0.8,0.8,0.8],
+    'scale' : [25.4,25.4,25.4],
     'name' : 'FLYBOWL',
     'description' : '',
     'vendor' : '',
@@ -49,6 +51,10 @@ class FlyBowl(csg.Difference):
         self.__make_food_dish_hole()
         # self.__set_bom()
         self.set_color(self.parameters['color'],recursive=True)
+
+        # convert to mm
+        scale = self.parameters['scale']
+        self.set_scale(scale)
 
     def get_parameters(self):
         return copy.deepcopy(self.parameters)
@@ -113,8 +119,14 @@ class FlyBowl(csg.Difference):
         counterbore.translate([0,0,z_offset])
 
 
-        counterbore_x = self.parameters['counterbore_x']
-        counterbore_y = self.parameters['counterbore_y']
+        counterbore_x_distances = self.parameters['counterbore_x_distances']
+        counterbore_y_distances = self.parameters['counterbore_y_distances']
+        cxd = list(set([abs(number) for number in counterbore_x_distances]))
+        cxd.sort()
+        cyd = list(set([abs(number) for number in counterbore_y_distances]))
+        cyd.sort()
+        counterbore_x = [[-cxd[0],cxd[0]],[-cxd[1],cxd[1]],[-cxd[1],cxd[1]]]
+        counterbore_y = [[-cyd[1],cyd[1]],[-cyd[1],cyd[1]],[-cyd[0],cyd[0]]]
         counterbores = po.LinearArraySet(counterbore,x=counterbore_x,y=counterbore_y)
         self.add_obj(counterbores)
 
