@@ -47,9 +47,9 @@ class FlyBowl(csg.Difference):
         self.parameters = PARAMETERS
         self.__make_plate()
         self.__make_bowl()
-        self.__make_counterbores()
-        self.__make_mounting_holes()
-        self.__make_food_dish_hole()
+        #self.__make_counterbores()
+        #self.__make_mounting_holes()
+        #self.__make_food_dish_hole()
         # self.__set_bom()
         self.set_color(self.parameters['color'],recursive=True)
 
